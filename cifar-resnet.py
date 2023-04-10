@@ -144,11 +144,11 @@ def main():
 
 
     #计算网络参数和flops
-    with torch.cuda.device(0):
-      net = model
-      flops, params = get_model_complexity_info(net, (3, 32,32), as_strings=True, print_per_layer_stat=True)
-      print('Flops:  ' + flops)
-      print('Params: ' + params)
+    # with torch.cuda.device(0):
+    #   net = model
+    #   flops, params = get_model_complexity_info(net, (3, 32,32), as_strings=True, print_per_layer_stat=True)
+    #   print('Flops:  ' + flops)
+    #   print('Params: ' + params)
 
     # Resume
     title = 'cifar-10-' + args.arch
