@@ -12,6 +12,7 @@ import os
 import random
 import shutil
 import time
+import copy
 
 import torch
 import torch.nn as nn
@@ -20,6 +21,7 @@ import torch.optim as optim
 import torch.utils.data as data
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
+import torch_dtu.core.dtu_model as dm
 
 import models
 from utils import Logger, AverageMeter, accuracy, mkdir_p, savefig
@@ -81,15 +83,16 @@ state = {k: v for k, v in args._get_kwargs()}
 assert args.dataset == 'cifar10' or args.dataset == 'cifar100', 'Dataset can only be cifar10 or cifar100.'
 
 # Use CUDA
-use_cuda = torch.cuda.is_available()
+use_cuda = True #torch.cuda.is_available()
+dtu_device= dm.dtu_device()
 
 # Random seed
 if args.manualSeed is None:
     args.manualSeed = random.randint(1, 10000)
 random.seed(args.manualSeed)
 torch.manual_seed(args.manualSeed)
-if use_cuda:
-    torch.cuda.manual_seed_all(args.manualSeed)
+# if use_cuda:
+#     torch.cuda.manual_seed_all(args.manualSeed)
 
 best_acc = 0  # best test accuracy
 
@@ -135,7 +138,7 @@ def main():
     
     print(model)
     if use_cuda:
-        model.cuda()
+        model = copy.deepcopy(model).to(dtu_device)
     
     print('    Total params: %.2f' % (sum(p.numel() for p in model.parameters())))
 
@@ -222,7 +225,7 @@ def train(trainloader, model, criterion, optimizer, epoch, use_cuda):
         data_time.update(time.time() - end)
 
         if use_cuda:
-            inputs, targets = inputs.cuda(), targets.cuda(async=True)
+            inputs, targets = inputs.to(dtu_device, non_blocking=False), targets.to(dtu_device, non_blocking=False)
         inputs, targets = torch.autograd.Variable(inputs), torch.autograd.Variable(targets)
 
         # compute output
@@ -279,7 +282,7 @@ def test(testloader, model, criterion, epoch, use_cuda):
         data_time.update(time.time() - end)
 
         if use_cuda:
-            inputs, targets = inputs.cuda(), targets.cuda()
+            inputs, targets = inputs.to(dtu_device), targets.to(dtu_device)
         with torch.no_grad():
             inputs, targets = torch.autograd.Variable(inputs), torch.autograd.Variable(targets)
 
